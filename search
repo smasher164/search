@@ -1,0 +1,20 @@
+#!/usr/bin/env raku
+
+sub script (@query, $site) {
+	my $quotedQuery = @query.join(" ").subst(/\"/, '\\"', :g);
+	my $script = qq:to/END/;
+	tell application "Google Chrome"
+		activate
+		tell front window
+			make new tab at after (get active tab)
+			tell application "System Events" to keystroke "$quotedQuery {"site:$site" if $site ne "google.com" }"
+			tell application "System Events" to keystroke return
+		end tell
+	end tell
+	END
+	run 'osascript', '-e', $script;
+}
+
+multi sub MAIN(*@query where +*, Bool :$google) { script @query, "google.com" }
+multi sub MAIN(*@query where +*, Bool :$hn) { script @query, "news.ycombinator.com" }
+multi sub MAIN(*@query where +*, Bool :$reddit) { script @query, "reddit.com" }

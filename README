@@ -1,0 +1,8 @@
+search
+
+CLI tool to open browser tab and search under a specific site.
+
+Usage:
+  search [--google] [<query> ...]
+  search [--hn] [<query> ...]
+  search [--reddit] [<query> ...]
