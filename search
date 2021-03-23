@@ -1,13 +1,13 @@
 #!/usr/bin/env raku
 
 sub script (@query, $site) {
-	my $quotedQuery = @query.join(" ").subst(/\"/, '\\"', :g);
+	my $escapedQuery = @query.join(" ").subst(/\"/, '\\"', :g);
 	my $script = qq:to/END/;
 	tell application "Google Chrome"
 		activate
 		tell front window
 			make new tab at after (get active tab)
-			tell application "System Events" to keystroke "$quotedQuery {"site:$site" if $site ne "google.com" }"
+			tell application "System Events" to keystroke "$escapedQuery { "site:$site" if $site ne "google.com" }"
 			tell application "System Events" to keystroke return
 		end tell
 	end tell
