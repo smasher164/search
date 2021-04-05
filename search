@@ -1,5 +1,14 @@
 #!/usr/bin/env raku
 
+sub open ($url) {
+	my $script = qq:to/END/;
+	tell application "Google Chrome"
+		open location "$url"
+	end tell
+	END
+	run 'osascript', '-e', $script;
+}
+
 sub script (@query, $site) {
 	my $escapedQuery = @query.join(" ").subst(/\"/, '\\"', :g);
 	my $script = qq:to/END/;
@@ -18,3 +27,11 @@ sub script (@query, $site) {
 multi sub MAIN(*@query where +*, Bool :$google) { script @query, "google.com" }
 multi sub MAIN(*@query where +*, Bool :$hn) { script @query, "news.ycombinator.com" }
 multi sub MAIN(*@query where +*, Bool :$reddit) { script @query, "reddit.com" }
+multi sub MAIN(*@query where +*, Bool :$nix) {
+	my $escapedURL = @query
+		.join(" ")
+		.subst(/<-[\w\ \-_.~]>/, *.ord.fmt('%%%02X'), :g)
+		.subst(' ', '+', :g)
+		.fmt("https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&query=%s");
+	open($escapedURL);
+}
