@@ -6,3 +6,4 @@ Usage:
   search [--google] [<query> ...]
   search [--hn] [<query> ...]
   search [--reddit] [<query> ...]
+  search [--nix] [<query> ...]
