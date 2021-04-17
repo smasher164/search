@@ -7,3 +7,4 @@ Usage:
   search [--hn] [<query> ...]
   search [--reddit] [<query> ...]
   search [--nix] [<query> ...]
+  search [--scihub] [<query> ...]
