@@ -1,5 +1,9 @@
 #!/usr/bin/env raku
 
+use HTTP::Tiny;
+use JSON::Tiny;
+
+# open a URL in Chrome using applescript
 sub open ($url) {
 	my $script = qq:to/END/;
 	tell application "Google Chrome"
@@ -9,6 +13,7 @@ sub open ($url) {
 	run 'osascript', '-e', $script;
 }
 
+# run a Google search scoped to a specific site
 sub script (@query, $site) {
 	my $escapedQuery = @query.join(" ").subst(/\"/, '\\"', :g);
 	my $script = qq:to/END/;
@@ -28,10 +33,30 @@ multi sub MAIN(*@query where +*, Bool :$google) { script @query, "google.com" }
 multi sub MAIN(*@query where +*, Bool :$hn) { script @query, "news.ycombinator.com" }
 multi sub MAIN(*@query where +*, Bool :$reddit) { script @query, "reddit.com" }
 multi sub MAIN(*@query where +*, Bool :$nix) {
+	# Escape query parameter and open search URL.
 	my $escapedURL = @query
 		.join(" ")
 		.subst(/<-[\w\ \-_.~]>/, *.ord.fmt('%%%02X'), :g)
 		.subst(' ', '+', :g)
 		.fmt("https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&query=%s");
 	open($escapedURL);
+}
+multi sub MAIN(*@query where +*, Bool :$scihub) {
+	# Pinned reddit post to grab latest Sci-Hub URL.
+	my $url = "https://www.reddit.com/r/scihub/comments/jg8ka2/official_scihub_website_directory_scihub_project.json";
+	
+	# Generate random user-agent string.
+	my $agent = ('0' ... '9', 'A' ... 'Z', 'a' ... 'z').roll(32).join();
+	
+	# Fetch and decode response's JSON body.
+	my $resp = HTTP::Tiny.new :agent<$agent>.get: $url;
+	my $json = $resp<content>.decode;
+	my $data = from-json($json);
+	
+	# Extract first Sci-Hub mirror from post.
+	my $match = $data[0]<data><children>[0]<data><selftext> ~~ /^.*?'Official Sci-Hub Mirrors'.*?\((.*?)\).*?$/;
+	
+	# Open query with that mirror.
+	my $scihubURL = $match[0] ~ @query;
+	open($scihubURL);
 }
